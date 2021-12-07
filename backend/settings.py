@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+URL_DOLLAR_WEB_SERVICE = "https://www.dolarsi.com/api/api.php?type=valoresprincipales"
+
 
 # Application definition
 

@@ -2,6 +2,8 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from ecommerce import models
 from rest_framework.test import APITestCase
+from mock import patch
+import requests
 
 
 class BasicTestCase(TestCase):
@@ -88,3 +90,32 @@ class OrderAPITestCase(APITestCase):
         self.assertEqual(response.json(), [])
 
 
+    @patch.object(requests, 'get')
+    def test_get_order_with_total_usd(self, mock_requests):
+        watch = models.Product.objects.create(name="watch", price=100.00)
+
+        order = models.Order.objects.create()
+        order.orderdetail_set.create(product=watch, quantity=1)
+
+        mock_requests.return_value.json.return_value = [
+                {
+                    'casa': {
+                        'compra': '195,00', 
+                        'venta': '200,00',
+                        'agencia': '310',
+                        'nombre': 'Dolar Blue',
+                        'variacion': '-0,50',
+                        'ventaCero': 'TRUE',
+                        'decimales': '2',
+                    }
+                }
+        ]
+
+
+        response = self.client.get(f"/api/orders/{order.id}/")
+
+        self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+
+        self.assertEqual(response_data['total_usd'], 0.5)

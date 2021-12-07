@@ -1,4 +1,6 @@
 from django.db import models
+import requests
+from django.conf import settings
 
 # Create your models here.
 
@@ -14,8 +16,17 @@ class Order(models.Model):
     def get_total(self):
         return sum([detail.get_total() for detail in self.orderdetail_set.all()])
 
-    def get_total_usd(self, convert_to_usd):
-        return convert_to_usd(self.get_total())
+    def get_total_usd(self):
+        data = requests.get(settings.URL_DOLLAR_WEB_SERVICE).json()
+
+        items_for_dolar_blue = [
+                x['casa'] for x in data 
+                if 'Dolar Blue' in x['casa']['nombre']
+        ]
+
+        value_as_float = float(items_for_dolar_blue[0]['venta'].replace(",", "."))
+
+        return self.get_total() / value_as_float
 
 
 class OrderDetail(models.Model):
