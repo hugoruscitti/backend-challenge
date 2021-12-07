@@ -14,6 +14,9 @@ class Order(models.Model):
     def get_total(self):
         return sum([detail.get_total() for detail in self.orderdetail_set.all()])
 
+    def get_total_usd(self, convert_to_usd):
+        return convert_to_usd(self.get_total())
+
 
 class OrderDetail(models.Model):
     order = models.ForeignKey('Order', on_delete=models.CASCADE)

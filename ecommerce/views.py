@@ -1,16 +1,13 @@
-from django.shortcuts import render
-from rest_framework import serializers, viewsets
+from rest_framework import viewsets
 from ecommerce import models
-
-class ProductSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = models.Product
-        fields = [
-            'name', 
-            'price',
-            'stock',
-        ]
+from ecommerce import serializers
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = models.Product.objects.all()
-    serializer_class = ProductSerializer
+    serializer_class = serializers.ProductSerializer
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = models.Order.objects.all()
+    serializer_class = serializers.OrderSerializer
+

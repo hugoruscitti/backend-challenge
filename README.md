@@ -18,3 +18,9 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
 ```
+
+Lastly, to create a super user run this command:
+
+```
+python manage.py createsuperuser
+```
