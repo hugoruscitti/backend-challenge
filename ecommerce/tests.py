@@ -121,7 +121,6 @@ class OrderAPITestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [])
 
-
     @patch.object(requests, 'get')
     def test_get_order_with_total_usd(self, mock_requests):
         watch = models.Product.objects.create(name="watch", price=100.00, stock=1)
@@ -282,3 +281,18 @@ class OrderAPITestCase(APITestCase):
 
         watch.refresh_from_db()
         self.assertEqual(watch.stock, 3)
+
+    def test_cant_create_order_with_quantity_0_or_minor(self):
+        watch = models.Product.objects.create(name="watch", price=99.00, stock=10)
+
+        response = self.client.post("/api/orders/", {
+            "detail": [
+                {
+                    "product": watch.id, 
+                    "quantity": 0,
+                },
+            ]
+        }, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(watch.stock, 10)
