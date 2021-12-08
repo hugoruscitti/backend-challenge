@@ -77,6 +77,17 @@ class ProductAPITestCase(APITestCase):
 
         self.assertEqual(models.Product.objects.count(), 1)
 
+    def test_change_product_stock(self):
+        response = self.client.post(f"/api/products/", {"name": "watch", "price": 99.00, "stock": 10})
+        self.assertEqual(response.status_code, 201)
+
+        response = self.client.patch("/api/products/1/", {"stock": 20}, format="json")
+
+        self.assertEqual(response.status_code, 200)
+
+        product = models.Product.objects.get(id=1)
+        self.assertEqual(product.stock, 20)
+
     def test_can_editor_a_product(self):
         response = self.client.post(f"/api/products/", {"name": "watch", "price": 99.00})
         self.assertEqual(response.status_code, 201)
