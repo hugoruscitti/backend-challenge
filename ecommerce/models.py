@@ -48,6 +48,9 @@ class OrderDetail(models.Model):
 @receiver(pre_save, sender=OrderDetail, dispatch_uid='change_product_stock')
 @transaction.atomic
 def change_product_stock(sender, instance, **kwargs):
+    if instance.quantity < 1:
+        raise ValueError(f"Quantity can't be less than 1")
+
     if instance.id is None:
         product = instance.product
         product.refresh_from_db()

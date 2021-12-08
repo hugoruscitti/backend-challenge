@@ -296,3 +296,4 @@ class OrderAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(watch.stock, 10)
+        self.assertEqual(response.json()['validation error'], "Quantity can't be less than 1")
