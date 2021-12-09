@@ -170,6 +170,7 @@ class OrderAPITestCase(APITestCase):
 
     def test_create_order_with_detail(self):
         watch = models.Product.objects.create(name="watch", price=99.00, stock=10)
+        notebook = models.Product.objects.create(name="notebook", price=1499.00, stock=10)
 
         response = self.client.post("/api/orders/", {
             "detail": [
@@ -178,7 +179,7 @@ class OrderAPITestCase(APITestCase):
                     "quantity": 1,
                 },
                 {
-                    "product": watch.id, 
+                    "product": notebook.id, 
                     "quantity": 2,
                 },
             ]
@@ -188,7 +189,9 @@ class OrderAPITestCase(APITestCase):
         self.assertEqual(len(response.json()['detail']), 2)
 
         watch.refresh_from_db()
-        self.assertEqual(watch.stock, 7)
+        notebook.refresh_from_db()
+        self.assertEqual(watch.stock, 9)
+        self.assertEqual(notebook.stock, 8)
 
     def test_restore_stock_when_delete_order(self):
         watch = models.Product.objects.create(name="watch", price=99.00, stock=10)
@@ -297,3 +300,23 @@ class OrderAPITestCase(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(watch.stock, 10)
         self.assertEqual(response.json()['validation error'], "Quantity can't be less than 1")
+
+    def test_cant_create_order_with_repeated_products(self):
+        watch = models.Product.objects.create(name="watch", price=99.00, stock=10)
+
+        response = self.client.post("/api/orders/", {
+            "detail": [
+                {
+                    "product": watch.id, 
+                    "quantity": 2,
+                },
+                {
+                    "product": watch.id, 
+                    "quantity": 1,
+                },
+            ]
+        }, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(watch.stock, 10)
+        self.assertEqual(response.json()['validation error'], "Repeated product in orders is not allowed")

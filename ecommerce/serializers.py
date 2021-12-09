@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from collections import Counter
 from ecommerce import models
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -40,8 +41,7 @@ class OrderSerializer(serializers.ModelSerializer):
         detail_list = validated_data.pop('detail')
         order = models.Order.objects.create(**validated_data)
 
-        for detail in detail_list:
-            order.detail.create(product=detail['product'], quantity=detail['quantity'])
+        self.validate_and_create_order_details(order, detail_list)
 
         return order
 
@@ -50,7 +50,18 @@ class OrderSerializer(serializers.ModelSerializer):
 
         instance.detail.all().delete()
 
-        for detail in detail_list:
-            instance.detail.create(product=detail['product'], quantity=detail['quantity'])
+        self.validate_and_create_order_details(instance, detail_list)
 
         return instance
+
+    def validate_and_create_order_details(self, order, detail_list):
+        products = [detail['product'] for detail in detail_list]
+        products_with_count = Counter(products)
+        products_repeated = [key for key in products_with_count.keys() if products_with_count[key] > 1]
+
+        if products_repeated:
+            raise ValueError(f"Repeated product in orders is not allowed")
+
+        for detail in detail_list:
+            order.detail.create(product=detail['product'], quantity=detail['quantity'])
+
